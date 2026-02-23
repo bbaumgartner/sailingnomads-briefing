@@ -215,12 +215,12 @@ build_context() {
         context+="$briefings"$'\n'
     fi
 
-    local logbook
-    logbook=$(extract_logbook_context)
-    if [ -n "$logbook" ]; then
-        context+="=== LOGBOOK CONTEXT ==="$'\n'
-        context+="$logbook"
-    fi
+    # local logbook
+    # logbook=$(extract_logbook_context)
+    # if [ -n "$logbook" ]; then
+    #     context+="=== LOGBOOK CONTEXT ==="$'\n'
+    #     context+="$logbook"
+    # fi
 
     echo "$context"
 }
@@ -234,54 +234,13 @@ write_to_journal() {
     local journal_file="$JOURNALS_DIR/${today}.md"
 
     if [ -f "$journal_file" ]; then
-        # Check if a briefing block already exists
-        if grep -q '^\- \[\[Tagesbriefing\]\]' "$journal_file"; then
-            echo -e "${YELLOW}Replacing existing briefing in ${today}.md${NC}"
-            replace_briefing_in_file "$journal_file" "$briefing"
-        else
-            echo -e "${GREEN}Appending briefing to ${today}.md${NC}"
-            echo "" >> "$journal_file"
-            echo "$briefing" >> "$journal_file"
-        fi
+        echo -e "${GREEN}Appending briefing to ${today}.md${NC}"
+        echo "" >> "$journal_file"
+        echo "$briefing" >> "$journal_file"
     else
         echo -e "${GREEN}Creating new journal file ${today}.md${NC}"
         echo "$briefing" > "$journal_file"
     fi
-}
-
-# Replace an existing [[Tagesbriefing]] block in a journal file.
-replace_briefing_in_file() {
-    local file="$1"
-    local new_briefing="$2"
-    local temp_file
-    temp_file=$(mktemp)
-    local in_briefing=false
-    local replaced=false
-
-    while IFS= read -r line; do
-        if [[ "$line" =~ ^-\ \[\[Tagesbriefing\]\] ]]; then
-            in_briefing=true
-            if [ "$replaced" = false ]; then
-                echo "$new_briefing" >> "$temp_file"
-                replaced=true
-            fi
-            continue
-        fi
-
-        if [ "$in_briefing" = true ]; then
-            if [[ "$line" =~ ^[[:space:]]+(- |\t) ]] || [[ "$line" =~ ^$'\t' ]]; then
-                continue
-            else
-                in_briefing=false
-            fi
-        fi
-
-        if [ "$in_briefing" = false ]; then
-            echo "$line" >> "$temp_file"
-        fi
-    done < "$file"
-
-    mv "$temp_file" "$file"
 }
 
 # --- Main ---
