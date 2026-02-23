@@ -1,6 +1,6 @@
 # Sailing Nomads Daily Briefing
 
-A daily briefing generator for a sailing couple and their dog. It uses OpenAI with web search to produce a morning briefing covering weather, marine conditions, local events, news, sightseeing, and day planning — written directly into a Logseq journal.
+A daily briefing generator for a sailing couple and their dog at https://sailingnomads.ch. It uses OpenAI with web search to produce a morning briefing covering weather, marine conditions, local events, news, sightseeing, and day planning — written directly into a Logseq journal.
 
 ## How it works
 
@@ -11,13 +11,16 @@ A daily briefing generator for a sailing couple and their dog. It uses OpenAI wi
 ## Requirements
 
 - Go 1.22+
-- OpenAI API key with access to `gpt-4o` and web search
+- OpenAI API key with access to `gpt-5` and web search
 
 ## Setup
 
 ```bash
 # Clone and enter the repository
 cd sailingnomads-briefing
+
+# Build the Go program
+go build -o briefing .
 
 # Set your OpenAI API key
 export OPENAI_API_KEY='sk-...'
