@@ -22,7 +22,7 @@ if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
     echo "Example: $0 /Users/benno/Documents/saillog ./config.env"
     echo ""
     echo "The saillog_directory must contain a journals/ subdirectory."
-    echo "The optional config_file sets LANG, CONTEXT_DAYS, BRIEFING_LOOKBACK_DAYS."
+    echo "The optional config_file sets LANG, CONTEXT_DAYS."
     exit 1
 fi
 
@@ -38,8 +38,7 @@ fi
 # --- Defaults ---
 
 LANG="de"
-CONTEXT_DAYS=7
-BRIEFING_LOOKBACK_DAYS=3
+CONTEXT_DAYS=10
 
 if [ -n "$CONFIG_FILE" ] && [ -f "$CONFIG_FILE" ]; then
     echo -e "${GREEN}Loading config from $CONFIG_FILE${NC}"
@@ -97,62 +96,13 @@ find_gps_position() {
     return 1
 }
 
-# --- Extract previous briefings ---
+# --- Build context from recent journal files ---
 
-extract_previous_briefings() {
+build_context() {
     local context=""
+    local count=0
 
-    for days_ago in $(seq 1 "$BRIEFING_LOOKBACK_DAYS"); do
-        local file_date
-        file_date=$(journal_file_for_days_ago "$days_ago")
-        local journal_file="$JOURNALS_DIR/${file_date}.md"
-        local display_date
-        display_date=$(echo "$file_date" | tr '_' '-')
-
-        if [ -f "$journal_file" ]; then
-            local briefing
-            briefing=$(extract_briefing_block "$journal_file")
-            if [ -n "$briefing" ]; then
-                context+="--- ${display_date} ---"$'\n'
-                context+="$briefing"$'\n\n'
-            fi
-        fi
-    done
-
-    echo "$context"
-}
-
-# Extract the [[Tagesbriefing]] block and all its indented children from a file.
-extract_briefing_block() {
-    local file="$1"
-    local in_block=false
-    local result=""
-
-    while IFS= read -r line; do
-        if [[ "$line" =~ ^-\ \[\[Tagesbriefing\]\] ]]; then
-            in_block=true
-            result+="$line"$'\n'
-            continue
-        fi
-
-        if [ "$in_block" = true ]; then
-            # Block continues as long as lines are indented (start with tab or spaces followed by -)
-            if [[ "$line" =~ ^[[:space:]]+(- |\t) ]] || [[ "$line" =~ ^$'\t' ]]; then
-                result+="$line"$'\n'
-            else
-                # Non-indented line means the block ended
-                break
-            fi
-        fi
-    done < "$file"
-
-    echo "$result"
-}
-
-# --- Extract recent logbook entries (excluding briefing blocks) ---
-
-extract_logbook_context() {
-    local context=""
+    context+="=== RECENT JOURNAL ENTRIES ==="$'\n\n'
 
     for days_ago in $(seq 0 "$CONTEXT_DAYS"); do
         local file_date
@@ -162,66 +112,13 @@ extract_logbook_context() {
         display_date=$(echo "$file_date" | tr '_' '-')
 
         if [ -f "$journal_file" ]; then
-            local content
-            content=$(extract_non_briefing_content "$journal_file")
-            if [ -n "$content" ]; then
-                context+="--- ${display_date} ---"$'\n'
-                context+="$content"$'\n\n'
-            fi
+            context+="--- ${display_date} ---"$'\n'
+            context+="$(cat "$journal_file")"$'\n\n'
+            count=$((count + 1))
         fi
     done
 
-    echo "$context"
-}
-
-# Extract all content from a journal file EXCEPT the [[Tagesbriefing]] block.
-extract_non_briefing_content() {
-    local file="$1"
-    local in_briefing=false
-    local result=""
-
-    while IFS= read -r line; do
-        if [[ "$line" =~ ^-\ \[\[Tagesbriefing\]\] ]]; then
-            in_briefing=true
-            continue
-        fi
-
-        if [ "$in_briefing" = true ]; then
-            if [[ "$line" =~ ^[[:space:]]+(- |\t) ]] || [[ "$line" =~ ^$'\t' ]]; then
-                continue
-            else
-                in_briefing=false
-            fi
-        fi
-
-        if [ "$in_briefing" = false ]; then
-            result+="$line"$'\n'
-        fi
-    done < "$file"
-
-    # Trim trailing whitespace
-    echo "$result" | sed -e 's/[[:space:]]*$//'
-}
-
-# --- Build context for stdin ---
-
-build_context() {
-    local context=""
-
-    local briefings
-    briefings=$(extract_previous_briefings)
-    if [ -n "$briefings" ]; then
-        context+="=== PREVIOUS BRIEFINGS ==="$'\n'
-        context+="$briefings"$'\n'
-    fi
-
-    # local logbook
-    # logbook=$(extract_logbook_context)
-    # if [ -n "$logbook" ]; then
-    #     context+="=== LOGBOOK CONTEXT ==="$'\n'
-    #     context+="$logbook"
-    # fi
-
+    echo -e "${GREEN}Included $count journal files${NC}" >&2
     echo "$context"
 }
 
@@ -260,12 +157,11 @@ echo ""
 # Step 2: Build context from logbook
 echo -e "${YELLOW}Building context from logbook...${NC}"
 CONTEXT=$(build_context)
-CONTEXT_LINES=$(echo "$CONTEXT" | wc -l | tr -d ' ')
-echo -e "${GREEN}Context: ${CONTEXT_LINES} lines${NC}"
+echo -e "${GREEN}Context: ${CONTEXT} lines${NC}"
 echo ""
 
 # Step 3: Call the Go program
-echo -e "${YELLOW}Generating briefing...${CONTEXT} ${NC}"
+echo -e "${YELLOW}Generating briefing...${NC}"
 BRIEFING=$(echo "$CONTEXT" | (cd "$SCRIPT_DIR" && go run . --lat "$LATITUDE" --lon "$LONGITUDE" --lang "$LANG" --prompt "$SCRIPT_DIR/prompt.md"))
 
 if [ -z "$BRIEFING" ]; then
@@ -273,12 +169,11 @@ if [ -z "$BRIEFING" ]; then
     exit 1
 fi
 
-BRIEFING_LINES=$(echo "$BRIEFING" | wc -l | tr -d ' ')
 echo -e "${GREEN}Briefing generated: ${BRIEFING} lines${NC}"
 echo ""
 
 # Step 4: Write to journal
-write_to_journal "$BRIEFING"
+# write_to_journal "$BRIEFING"
 
 echo ""
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
