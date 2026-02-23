@@ -22,6 +22,9 @@ Wetter und Seegang
 - 3-Tage-Trend in Kurzform
 - Seegang und Wellenverhältnisse (aus den Marine-Daten)
 - Empfehlung: Ist es ein guter Tag zum Segeln? Sollte man im Hafen bleiben?
+- Konsultiere die Nationale Segelwettervorhersagen:
+-- Kroatien: https://meteo.hr/prognoze_e.php?section=prognoze_specp&param=jadran
+-- Slovenien: https://meteo.arso.gov.si/uploads/probase/www/fproduct/graphic/en/bulletinForecastGeneralCoast.pdf
 
 Sektion 2: Veranstaltungen und Aktivitäten
 Nutze die Websuche um herauszufinden, was heute und in den nächsten Tagen in der Nähe passiert: Märkte, Festivals, kulturelle Events, Konzerte, lokale Feiertage. Nenne konkrete Daten, Orte und falls verfügbar Links.
