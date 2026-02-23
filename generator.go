@@ -10,6 +10,7 @@ import (
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
 	"github.com/openai/openai-go/v3/responses"
+	"github.com/openai/openai-go/v3/shared"
 )
 
 // GenerateBriefing calls OpenAI with weather data, location, and context to produce a daily briefing.
@@ -28,10 +29,13 @@ func GenerateBriefing(loc Location, weather WeatherData, stdinContext, promptTex
 	fmt.Fprintf(os.Stderr, "User Message:\n%s", userMessage)
 
 	resp, err := client.Responses.New(ctx, responses.ResponseNewParams{
-		Model:        openai.ChatModelGPT4o,
+		Model:        openai.ChatModelGPT5,
 		Instructions: openai.String(promptText),
 		Input: responses.ResponseNewParamsInputUnion{
 			OfString: openai.String(userMessage),
+		},
+		Reasoning: shared.ReasoningParam{
+			Effort: shared.ReasoningEffortMedium,
 		},
 		Tools: []responses.ToolUnionParam{
 			{OfWebSearch: &responses.WebSearchToolParam{
