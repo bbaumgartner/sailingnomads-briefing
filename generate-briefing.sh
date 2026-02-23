@@ -173,7 +173,7 @@ echo -e "${GREEN}Briefing generated: ${BRIEFING} lines${NC}"
 echo ""
 
 # Step 4: Write to journal
-# write_to_journal "$BRIEFING"
+write_to_journal "$BRIEFING"
 
 echo ""
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"

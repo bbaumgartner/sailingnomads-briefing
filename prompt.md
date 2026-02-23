@@ -27,7 +27,14 @@ Sektion 2: Veranstaltungen und Aktivitäten
 Nutze die Websuche um herauszufinden, was heute und in den nächsten Tagen in der Nähe passiert: Märkte, Festivals, kulturelle Events, Konzerte, lokale Feiertage. Nenne konkrete Daten, Orte und falls verfügbar Links.
 
 Sektion 3: Nachrichten und aktuelle Themen
-Nutze die Websuche um aktuelle regionale Nachrichten und Themen zu finden, die die Menschen vor Ort beschäftigen. Was wird in sozialen Medien diskutiert? Gibt es politische oder gesellschaftliche Themen, die für Reisende relevant sind? Gibt es Sicherheitshinweise?
+Nutze die Websuche um aktuelle regionale Nachrichten und Themen zu finden, die die Menschen vor Ort beschäftigen. Durchsuche dabei gezielt:
+- Lokale Nachrichtenseiten und Zeitungen der Region
+- X/Twitter: Suche nach Trending Topics und Hashtags für die Stadt/Region (z.B. "site:x.com" oder "site:twitter.com" + Ortsname)
+- Reddit: Suche nach dem lokalen Subreddit der Stadt/Region (z.B. "site:reddit.com" + Ortsname)
+- Facebook: Suche nach lokalen Gruppen und Events (z.B. "site:facebook.com" + Ortsname + "events")
+- Instagram: Suche nach beliebten Orten und Hashtags (z.B. "site:instagram.com" + Ortsname)
+
+Fasse zusammen: Was beschäftigt die Leute vor Ort gerade? Gibt es politische oder gesellschaftliche Themen? Gibt es Sicherheitshinweise für Reisende?
 
 Sektion 4: Sehenswürdigkeiten und Ausflüge
 Empfiehl Sehenswürdigkeiten, Ausflüge und interessante Orte in der Nähe. Berücksichtige dabei:
