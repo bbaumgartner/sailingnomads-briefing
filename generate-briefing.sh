@@ -6,7 +6,7 @@
 # and writes the output into today's journal file.
 # Cross-platform: supports both macOS (Darwin) and Linux.
 
-set -euo pipefail
+set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -79,7 +79,7 @@ find_gps_position() {
 
         if [ -f "$journal_file" ]; then
             local position
-            position=$(grep -o 'current_position:: [0-9.-]*/[0-9.-]*' "$journal_file" 2>/dev/null | head -1 | sed 's/current_position:: //')
+            position=$(grep -o 'current_position:: [0-9.-]*/[0-9.-]*' "$journal_file" 2>/dev/null | head -1 | sed 's/current_position:: //' || true)
 
             if [ -n "$position" ]; then
                 LATITUDE=$(echo "$position" | cut -d'/' -f1)
