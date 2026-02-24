@@ -6,7 +6,7 @@
 # and writes the output into today's journal file.
 # Cross-platform: supports both macOS (Darwin) and Linux.
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -160,12 +160,22 @@ CONTEXT=$(build_context)
 echo -e "${GREEN}Context: ${CONTEXT} lines${NC}"
 echo ""
 
-# Step 3: Call the Go program
+# Step 3: Call the Go program (with retries for transient network failures)
 echo -e "${YELLOW}Generating briefing...${NC}"
-BRIEFING=$(echo "$CONTEXT" | (cd "$SCRIPT_DIR" && go run . --lat "$LATITUDE" --lon "$LONGITUDE" --lang "$LANG" --prompt "$SCRIPT_DIR/prompt.md"))
+MAX_ATTEMPTS=3
+BRIEFING=""
+for attempt in $(seq 1 $MAX_ATTEMPTS); do
+    if [ "$attempt" -gt 1 ]; then
+        WAIT=$(( (attempt - 1) * 30 ))
+        echo -e "${YELLOW}Retrying in ${WAIT}s (attempt ${attempt}/${MAX_ATTEMPTS})...${NC}"
+        sleep "$WAIT"
+    fi
+
+    BRIEFING=$(echo "$CONTEXT" | (cd "$SCRIPT_DIR" && go run . --lat "$LATITUDE" --lon "$LONGITUDE" --lang "$LANG" --prompt "$SCRIPT_DIR/prompt.md")) && break || true
+done
 
 if [ -z "$BRIEFING" ]; then
-    echo -e "${RED}Error: briefing generation returned empty output${NC}"
+    echo -e "${RED}Error: briefing generation returned empty output after ${MAX_ATTEMPTS} attempts${NC}"
     exit 1
 fi
 

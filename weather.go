@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -148,24 +149,45 @@ func fetchMarine(lat, lon float64) (marineResult, error) {
 	return result, nil
 }
 
+const (
+	fetchMaxRetries = 3
+	fetchTimeout    = 30 * time.Second
+)
+
 func fetchJSON[T any](url string) (T, error) {
 	var zero T
-	client := &http.Client{Timeout: 15 * time.Second}
-	resp, err := client.Get(url)
-	if err != nil {
-		return zero, err
-	}
-	defer resp.Body.Close()
+	client := &http.Client{Timeout: fetchTimeout}
 
-	if resp.StatusCode != http.StatusOK {
-		return zero, fmt.Errorf("API returned status %d", resp.StatusCode)
+	var lastErr error
+	for attempt := range fetchMaxRetries {
+		if attempt > 0 {
+			backoff := time.Duration(attempt) * 10 * time.Second
+			fmt.Fprintf(os.Stderr, "Retrying in %s (attempt %d/%d)...\n", backoff, attempt+1, fetchMaxRetries)
+			time.Sleep(backoff)
+		}
+
+		resp, err := client.Get(url)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			resp.Body.Close()
+			lastErr = fmt.Errorf("API returned status %d", resp.StatusCode)
+			continue
+		}
+
+		var result T
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			resp.Body.Close()
+			return zero, fmt.Errorf("decoding response: %w", err)
+		}
+		resp.Body.Close()
+		return result, nil
 	}
 
-	var result T
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return zero, fmt.Errorf("decoding response: %w", err)
-	}
-	return result, nil
+	return zero, fmt.Errorf("after %d attempts: %w", fetchMaxRetries, lastErr)
 }
 
 func safeIndex(s []float64, i int) float64 {
