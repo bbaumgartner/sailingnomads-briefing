@@ -79,9 +79,12 @@ find_gps_position() {
 
         if [ -f "$journal_file" ]; then
             local position
-            position=$(grep -o 'current_position:: [0-9.-]*/[0-9.-]*' "$journal_file" 2>/dev/null | head -1 | sed 's/current_position:: //' || true)
+            # Matches current_position or current-position, separator / or ', '
+            position=$(grep -oE 'current[-_]position:: [0-9.-]+[/,] ?[0-9.-]+' "$journal_file" 2>/dev/null | head -1 | sed 's/current[-_]position:: //' || true)
 
             if [ -n "$position" ]; then
+                # Normalize ', ' separator to '/' for uniform parsing
+                position=$(echo "$position" | sed 's/[[:space:]]*,[[:space:]]*/\//')
                 LATITUDE=$(echo "$position" | cut -d'/' -f1)
                 LONGITUDE=$(echo "$position" | cut -d'/' -f2)
                 echo -e "${GREEN}Found position: $LATITUDE, $LONGITUDE (from ${file_date}.md)${NC}"
